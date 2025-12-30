@@ -3,10 +3,20 @@ import { Plus, Search, User, Filter, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Users = () => {
-  const { pendingUsers, approveUser, rejectUser } = useAuth();
+  const { pendingUsers, approveUser, rejectUser, signup } = useAuth();
   const [activeTab, setActiveTab] = useState('all'); // all | pending
-  // Placeholder for approved users
-  const users = [];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
+
+  // Get approved users from context
+  const approvedUsers = pendingUsers.filter(u => u.status === 'approved');
+  
+  // Filter based on search
+  const filteredUsers = approvedUsers.filter(u => 
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="users-page">
@@ -15,7 +25,7 @@ const Users = () => {
           <h1>User Management</h1>
           <p className="subtitle">Manage user access and permissions.</p>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
           <Plus size={18} />
           <span>Add User</span>
         </button>
@@ -95,14 +105,20 @@ const Users = () => {
                 <div className="toolbar">
                   <div className="search-wrapper">
                     <Search size={18} className="search-icon" />
-                    <input type="text" placeholder="Search users..." className="form-input search-input" />
+                    <input 
+                      type="text" 
+                      placeholder="Search users..." 
+                      className="form-input search-input"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
                   <button className="btn-icon">
                     <Filter size={18} />
                   </button>
                 </div>
 
-                {users.length > 0 ? (
+                {filteredUsers.length > 0 ? (
                   <table className="data-table">
                     <thead>
                       <tr>
@@ -114,7 +130,30 @@ const Users = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {/* User rows */}
+                      {filteredUsers.map(user => (
+                        <tr key={user.id}>
+                          <td>
+                            <div className="user-info-cell">
+                              <div className="user-avatar-sm">{user.name.charAt(0)}</div>
+                              {user.name}
+                            </div>
+                          </td>
+                          <td>{user.email}</td>
+                          <td><span className="role-badge">User</span></td>
+                          <td><span className="status-badge success">Active</span></td>
+                          <td>
+                            <div className="action-buttons">
+                              <button 
+                                className="btn-icon-sm danger" 
+                                title="Remove User"
+                                onClick={() => rejectUser(user.id)}
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 ) : (
@@ -122,14 +161,77 @@ const Users = () => {
                     <div className="empty-icon-circle">
                       <User size={32} />
                     </div>
-                    <h3>No Users Found</h3>
-                    <p>Get started by adding a new user to the system.</p>
-                    <button className="add-btn-link">Add your first user</button>
+                    <h3>{searchTerm ? 'No matching users' : 'No Users Found'}</h3>
+                    <p>{searchTerm ? 'Try a different search term.' : 'Get started by adding a new user to the system.'}</p>
+                    {!searchTerm && <button className="add-btn-link">Add your first user</button>}
                   </div>
                 )}
             </>
         )}
       </div>
+
+      {/* Add User Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add New User</h2>
+              <button className="close-btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+            </div>
+            <form className="modal-form" onSubmit={(e) => {
+              e.preventDefault();
+              const res = signup(newUser.name, newUser.email, newUser.password);
+              if (res.success) {
+                // Find and approve the user immediately
+                const saved = localStorage.getItem('pendingUsers');
+                const usersList = saved ? JSON.parse(saved) : [];
+                const addedUser = usersList.find(u => u.email === newUser.email);
+                if (addedUser) approveUser(addedUser.id);
+                
+                setIsModalOpen(false);
+                setNewUser({ name: '', email: '', password: '' });
+              } else {
+                alert(res.message);
+              }
+            }}>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  required 
+                  value={newUser.name}
+                  onChange={e => setNewUser({...newUser, name: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Email Address</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  required
+                  value={newUser.email}
+                  onChange={e => setNewUser({...newUser, email: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
+                <label>Password</label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  required
+                  value={newUser.password}
+                  onChange={e => setNewUser({...newUser, password: e.target.value})}
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Create User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .page-header {
@@ -295,6 +397,42 @@ const Users = () => {
            border-radius: 12px;
            font-size: 0.85rem;
         }
+
+        .status-badge.success {
+           color: #10b981;
+           background: rgba(16, 185, 129, 0.1);
+           padding: 0.25rem 0.75rem;
+           border-radius: 12px;
+           font-size: 0.85rem;
+        }
+
+        .role-badge {
+           color: var(--text-muted);
+           background: rgba(255, 255, 255, 0.05);
+           padding: 0.2rem 0.5rem;
+           border-radius: 4px;
+           font-size: 0.8rem;
+           border: 1px solid var(--glass-border);
+        }
+
+        .user-info-cell {
+           display: flex;
+           align-items: center;
+           gap: 0.75rem;
+        }
+
+        .user-avatar-sm {
+           width: 32px;
+           height: 32px;
+           background: var(--primary);
+           color: white;
+           border-radius: 8px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           font-weight: 600;
+           font-size: 0.8rem;
+        }
         
         .action-buttons {
            display: flex;
@@ -312,6 +450,72 @@ const Users = () => {
         .btn-icon-sm:hover { color: white; background: rgba(255,255,255,0.1); }
         .btn-icon-sm.success:hover { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .btn-icon-sm.danger:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          animation: fade-in 0.3s ease;
+        }
+
+        .modal-content {
+          width: 100%;
+          max-width: 450px;
+          padding: 2rem;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+
+        .close-btn {
+          background: transparent;
+          color: var(--text-muted);
+          transition: 0.2s;
+        }
+
+        .close-btn:hover { color: white; }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+          display: block;
+          font-size: 0.9rem;
+          margin-bottom: 0.5rem;
+          color: var(--text-muted);
+        }
+
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          margin-top: 2rem;
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
       `}</style>
     </div>
   );

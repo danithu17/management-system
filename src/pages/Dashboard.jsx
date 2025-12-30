@@ -3,11 +3,14 @@ import { DollarSign, Users, TrendingUp, Activity, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, pendingUsers } = useAuth();
+  
+  const approvedCount = pendingUsers.filter(u => u.status === 'approved').length;
+
   // Empty data state for "fresh" look as requested
   const stats = [
     { label: 'Total Revenue', value: '$0.00', change: '0%', icon: DollarSign, color: '#10b981' },
-    { label: 'Active Users', value: '0', change: '0%', icon: Users, color: '#3b82f6' },
+    { label: 'Active Users', value: approvedCount.toString(), change: '0%', icon: Users, color: '#3b82f6' },
     { label: 'Sales', value: '0', change: '0%', icon: TrendingUp, color: '#f59e0b' },
     { label: 'Active Now', value: '0', change: '0%', icon: Activity, color: '#ec4899' },
   ];
