@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Products from './pages/Products';
 import Settings from './pages/Settings';
+import Reports from './pages/Reports';
 import Placeholder from './pages/Placeholder';
 
 // Protected Route Component
@@ -31,6 +32,7 @@ const AppRoutes = () => {
         <Route path="users" element={<Users />} />
         <Route path="products" element={<Products />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="reports" element={<Reports />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

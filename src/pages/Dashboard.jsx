@@ -1,9 +1,10 @@
-import React from 'react';
 import { DollarSign, Users, TrendingUp, Activity, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, pendingUsers } = useAuth();
+  const navigate = useNavigate();
   
   const approvedCount = pendingUsers.filter(u => u.status === 'approved').length;
 
@@ -22,7 +23,7 @@ const Dashboard = () => {
           <h1>Hello, {user?.name.split(' ')[0]} 👋</h1>
           <p className="subtitle">Here is what's happening today.</p>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => navigate('/reports')}>
           <Plus size={18} />
           <span>New Report</span>
         </button>

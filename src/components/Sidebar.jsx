@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Package, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
@@ -10,6 +10,7 @@ const Sidebar = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'User Management', path: '/users', badge: pendingUsers?.filter(u => u.status === 'pending').length },
     { icon: Package, label: 'Products', path: '/products' },
+    { icon: FileText, label: 'Reports', path: '/reports' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
