@@ -5,6 +5,21 @@ import { useAuth } from '../context/AuthContext';
 const Settings = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [name, setName] = useState(user?.name || '');
+
+  const handleUpdateProfile = (e) => {
+    e.preventDefault();
+    const updatedUser = { ...user, name };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    // Also update in pendingUsers if exists to keep consistency
+    const savedPending = localStorage.getItem('pendingUsers');
+    if (savedPending) {
+      const pending = JSON.parse(savedPending);
+      const updatedPending = pending.map(u => u.email === user.email ? { ...u, name } : u);
+      localStorage.setItem('pendingUsers', JSON.stringify(updatedPending));
+    }
+    window.location.reload(); // Simple way to refresh context
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -52,10 +67,15 @@ const Settings = () => {
                 </div>
               </div>
 
-              <form className="settings-form">
+              <form className="settings-form" onSubmit={handleUpdateProfile}>
                 <div className="form-group">
                   <label>Full Name</label>
-                  <input type="text" className="form-input" defaultValue={user?.name} />
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Email Address</label>
@@ -64,7 +84,7 @@ const Settings = () => {
                 </div>
                 
                 <div className="form-actions">
-                  <button className="btn-primary">
+                  <button type="submit" className="btn-primary">
                     <Save size={18} />
                     Save Changes
                   </button>
