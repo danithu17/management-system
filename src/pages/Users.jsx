@@ -3,7 +3,7 @@ import { Plus, Search, User, Filter, Check, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Users = () => {
-  const { pendingUsers, approveUser, rejectUser, signup } = useAuth();
+  const { pendingUsers, approveUser, rejectUser, addUser } = useAuth();
   const [activeTab, setActiveTab] = useState('all'); // all | pending
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -180,14 +180,8 @@ const Users = () => {
             </div>
             <form className="modal-form" onSubmit={(e) => {
               e.preventDefault();
-              const res = signup(newUser.name, newUser.email, newUser.password);
+              const res = addUser(newUser.name, newUser.email, newUser.password);
               if (res.success) {
-                // Find and approve the user immediately
-                const saved = localStorage.getItem('pendingUsers');
-                const usersList = saved ? JSON.parse(saved) : [];
-                const addedUser = usersList.find(u => u.email === newUser.email);
-                if (addedUser) approveUser(addedUser.id);
-                
                 setIsModalOpen(false);
                 setNewUser({ name: '', email: '', password: '' });
               } else {

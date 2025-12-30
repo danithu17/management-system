@@ -45,7 +45,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = (name, email, password) => {
-    // simple check if already exists
     if (pendingUsers.find(u => u.email === email)) {
         return { success: false, message: 'Email already exists.' };
     }
@@ -59,18 +58,36 @@ export const AuthProvider = ({ children }) => {
         createdAt: new Date().toISOString() 
     };
     
-    setPendingUsers([...pendingUsers, newUser]);
+    setPendingUsers(prev => [...prev, newUser]);
     return { success: true, message: 'Signup successful! Please wait for admin approval.' };
   };
 
+  const addUser = (name, email, password) => {
+    if (pendingUsers.find(u => u.email === email)) {
+        return { success: false, message: 'Email already exists.' };
+    }
+    
+    const newUser = { 
+        id: Date.now(), 
+        name, 
+        email, 
+        password, 
+        status: 'approved', 
+        createdAt: new Date().toISOString() 
+    };
+    
+    setPendingUsers(prev => [...prev, newUser]);
+    return { success: true };
+  };
+
   const approveUser = (userId) => {
-    setPendingUsers(pendingUsers.map(u => 
+    setPendingUsers(prev => prev.map(u => 
         u.id === userId ? { ...u, status: 'approved' } : u
     ));
   };
   
   const rejectUser = (userId) => {
-      setPendingUsers(pendingUsers.filter(u => u.id !== userId));
+      setPendingUsers(prev => prev.filter(u => u.id !== userId));
   };
 
   const logout = () => {
@@ -84,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         login, 
         logout, 
         signup, 
+        addUser,
         loading, 
         pendingUsers, 
         approveUser, 
