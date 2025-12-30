@@ -11,10 +11,13 @@ import Reports from './pages/Reports';
 import Placeholder from './pages/Placeholder';
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user } = useAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  if (adminOnly && user.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -28,11 +31,19 @@ const AppRoutes = () => {
           <Layout />
         </ProtectedRoute>
       }>
-        <Route index element={<Dashboard />} />
-        <Route path="users" element={<Users />} />
+        <Route index element={<Dashboard />} /> {/* Added Dashboard as index route */}
+        <Route path="users" element={
+          <ProtectedRoute adminOnly>
+            <Users />
+          </ProtectedRoute>
+        } />
         <Route path="products" element={<Products />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="reports" element={<Reports />} />
+        <Route path="reports" element={
+          <ProtectedRoute adminOnly>
+            <Reports />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

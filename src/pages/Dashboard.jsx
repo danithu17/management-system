@@ -21,12 +21,18 @@ const Dashboard = () => {
       <header className="page-header animate-in">
         <div className="header-content">
           <h1>Hello, {user?.name.split(' ')[0]} 👋</h1>
-          <p className="subtitle">Here is what's happening today.</p>
+          <p className="subtitle">
+            {user?.role === 'admin' 
+              ? "System Overview and Management" 
+              : "Welcome back to your workspace."}
+          </p>
         </div>
-        <button className="btn-primary" onClick={() => navigate('/reports')}>
-          <Plus size={18} />
-          <span>New Report</span>
-        </button>
+        {user?.role === 'admin' && (
+          <button className="btn-primary" onClick={() => navigate('/reports')}>
+            <Plus size={18} />
+            <span>New Report</span>
+          </button>
+        )}
       </header>
 
       <div className="stats-grid animate-in delay-1">

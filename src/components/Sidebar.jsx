@@ -4,13 +4,16 @@ import { LayoutDashboard, Users, Settings, LogOut, Package, FileText } from 'luc
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
-  const { logout, pendingUsers } = useAuth();
+  const { user, logout, pendingUsers } = useAuth();
+  const isAdmin = user?.role === 'admin';
   
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'User Management', path: '/users', badge: pendingUsers?.filter(u => u.status === 'pending').length },
+    ...(isAdmin ? [
+      { icon: Users, label: 'User Management', path: '/users', badge: pendingUsers?.filter(u => u.status === 'pending').length },
+      { icon: FileText, label: 'Reports', path: '/reports' },
+    ] : []),
     { icon: Package, label: 'Products', path: '/products' },
-    { icon: FileText, label: 'Reports', path: '/reports' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
